@@ -1,0 +1,64 @@
+{
+  "name": "k-saju",
+  "version": "0.1.0",
+  "description": "Deterministic Korean Four Pillars (Saju · 사주 · BaZi) engine — minute-exact solar terms, true solar time, timezone-aware. Calculation is code; interpretation is up to you.",
+  "keywords": [
+    "saju",
+    "bazi",
+    "four-pillars",
+    "four-pillars-of-destiny",
+    "manseryeok",
+    "lunar-calendar",
+    "korean",
+    "fortune-telling",
+    "astrology",
+    "사주",
+    "만세력",
+    "八字"
+  ],
+  "license": "MIT",
+  "author": "ioreum (https://www.ioreum.com)",
+  "homepage": "https://github.com/bunhine0452/k-saju#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bunhine0452/k-saju.git"
+  },
+  "bugs": "https://github.com/bunhine0452/k-saju/issues",
+  "type": "module",
+  "sideEffects": false,
+  "engines": {
+    "node": ">=20"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "bin": {
+    "k-saju": "./bin/k-saju.mjs"
+  },
+  "files": [
+    "dist",
+    "bin",
+    "README.md",
+    "README.ko.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit",
+    "test": "node --import tsx --test test/pillars.test.ts test/tz.test.ts test/elements.test.ts test/luck-pillars.test.ts test/labels.test.ts",
+    "prepublishOnly": "npm run build && npm test"
+  },
+  "dependencies": {
+    "@fullstackfamily/manseryeok": "^1.0.8"
+  },
+  "devDependencies": {
+    "@types/node": "^22",
+    "tsx": "^4",
+    "typescript": "^5"
+  }
+}

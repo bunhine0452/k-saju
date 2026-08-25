@@ -1,0 +1,104 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 640" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace">
+  <style>
+    .g { opacity: 0; animation: rise .5s ease-out forwards; }
+    .d1 { animation-delay: .15s } .d2 { animation-delay: .55s } .d3 { animation-delay: 1.0s }
+    .d4 { animation-delay: 1.45s } .d5 { animation-delay: 1.9s } .d6 { animation-delay: 2.35s }
+    .d7 { animation-delay: 2.8s }
+    @keyframes rise { from { opacity: 0; transform: translateY(5px) } to { opacity: 1; transform: translateY(0) } }
+    @media (prefers-reduced-motion: reduce) { .g { animation: none; opacity: 1 } }
+    .mut { fill: #8b949e } .txt { fill: #e6edf3 }
+    .wood { fill: #3fb950 } .fire { fill: #f85149 } .earth { fill: #d29922 } .metal { fill: #a5b1bd } .water { fill: #39c5cf }
+    .cell { fill: #161b22; stroke: #30363d } .track { fill: #21262d }
+  </style>
+
+  <!-- terminal chrome -->
+  <rect x="1" y="1" width="758" height="638" rx="14" fill="#0d1117" stroke="#30363d"/>
+  <circle cx="28" cy="26" r="6" fill="#ff5f57"/><circle cx="50" cy="26" r="6" fill="#febc2e"/><circle cx="72" cy="26" r="6" fill="#28c840"/>
+  <text x="380" y="31" text-anchor="middle" class="mut" font-size="12">terminal</text>
+
+  <!-- prompt -->
+  <g class="g d1">
+    <text x="40" y="72" font-size="15"><tspan class="wood">$</tspan><tspan class="txt" dx="8">npx k-saju 1995-03-16 07:30</tspan></text>
+  </g>
+
+  <!-- pillars -->
+  <g class="g d2">
+    <text x="100" y="112" text-anchor="middle" class="mut" font-size="13">hour</text>
+    <text x="260" y="112" text-anchor="middle" fill="#e6edf3" font-size="13" font-weight="bold">day</text>
+    <text x="420" y="112" text-anchor="middle" class="mut" font-size="13">month</text>
+    <text x="580" y="112" text-anchor="middle" class="mut" font-size="13">year</text>
+
+    <rect x="40"  y="124" width="120" height="128" rx="10" class="cell"/>
+    <rect x="200" y="124" width="120" height="128" rx="10" fill="#161b22" stroke="#39c5cf"/>
+    <rect x="360" y="124" width="120" height="128" rx="10" class="cell"/>
+    <rect x="520" y="124" width="120" height="128" rx="10" class="cell"/>
+
+    <text x="100" y="172" text-anchor="middle" font-size="38" class="water">壬</text>
+    <text x="100" y="216" text-anchor="middle" font-size="38" class="earth">辰</text>
+    <text x="260" y="172" text-anchor="middle" font-size="38" class="fire">丙</text>
+    <text x="260" y="216" text-anchor="middle" font-size="38" class="fire">午</text>
+    <text x="420" y="172" text-anchor="middle" font-size="38" class="earth">己</text>
+    <text x="420" y="216" text-anchor="middle" font-size="38" class="wood">卯</text>
+    <text x="580" y="172" text-anchor="middle" font-size="38" class="wood">乙</text>
+    <text x="580" y="216" text-anchor="middle" font-size="38" class="water">亥</text>
+
+    <text x="100" y="242" text-anchor="middle" class="mut" font-size="10">Yang Water Dragon</text>
+    <text x="260" y="242" text-anchor="middle" font-size="10" fill="#39c5cf">Yang Fire Horse — you</text>
+    <text x="420" y="242" text-anchor="middle" class="mut" font-size="10">Yin Earth Rabbit</text>
+    <text x="580" y="242" text-anchor="middle" class="mut" font-size="10">Yin Wood Pig</text>
+  </g>
+
+  <!-- day master -->
+  <g class="g d3">
+    <text x="40" y="292" font-size="14"><tspan class="txt" font-weight="bold">day master</tspan><tspan class="fire" dx="10">丙 Yang Fire</tspan><tspan class="mut" dx="10">· stage 제왕 Peak · seat 겁재 Rob Wealth</tspan></text>
+  </g>
+
+  <!-- five elements -->
+  <g class="g d4" font-size="13">
+    <text x="40" y="330" class="wood">木 Wood</text>
+    <rect x="130" y="318" width="220" height="14" rx="7" class="track"/><rect x="130" y="318" width="220" height="14" rx="7" class="wood"/>
+    <text x="362" y="330" class="txt">2.5</text>
+
+    <text x="40" y="356" class="fire">火 Fire</text>
+    <rect x="130" y="344" width="220" height="14" rx="7" class="track"/><rect x="130" y="344" width="150" height="14" rx="7" class="fire"/>
+    <text x="362" y="356" class="txt">1.7</text>
+
+    <text x="40" y="382" class="earth">土 Earth</text>
+    <rect x="130" y="370" width="220" height="14" rx="7" class="track"/><rect x="130" y="370" width="185" height="14" rx="7" class="earth"/>
+    <text x="362" y="382" class="txt">2.1</text>
+
+    <text x="40" y="408" class="metal">金 Metal</text>
+    <rect x="130" y="396" width="220" height="14" rx="7" class="track"/>
+    <text x="362" y="408" class="txt">0.0</text>
+    <text x="404" y="408" class="mut" font-size="11">← absent: the chart lacks Metal</text>
+
+    <text x="40" y="434" class="water">水 Water</text>
+    <rect x="130" y="422" width="220" height="14" rx="7" class="track"/><rect x="130" y="422" width="141" height="14" rx="7" class="water"/>
+    <text x="362" y="434" class="txt">1.6</text>
+  </g>
+
+  <!-- ten gods -->
+  <g class="g d5">
+    <text x="40" y="476" font-size="13"><tspan class="mut">ten gods</tspan><tspan class="mut" dx="14">Companion 1 ·</tspan><tspan class="txt" dx="6" font-weight="bold">Output 2</tspan><tspan class="mut" dx="6">· Wealth 0 ·</tspan><tspan class="txt" dx="6" font-weight="bold">Authority 2</tspan><tspan class="mut" dx="6">·</tspan><tspan class="txt" dx="6" font-weight="bold">Resource 2</tspan></text>
+  </g>
+
+  <!-- luck cycles -->
+  <g class="g d6">
+    <text x="40" y="510" class="mut" font-size="13">luck cycles · reverse, every 10 years</text>
+    <g font-size="13" text-anchor="middle">
+      <rect x="40"  y="522" width="76" height="30" rx="8" class="cell"/><text x="78"  y="542"><tspan class="mut" font-size="11">3</tspan><tspan dx="5" class="earth">戊</tspan><tspan class="wood">寅</tspan></text>
+      <rect x="126" y="522" width="76" height="30" rx="8" class="cell"/><text x="164" y="542"><tspan class="mut" font-size="11">13</tspan><tspan dx="5" class="fire">丁</tspan><tspan class="earth">丑</tspan></text>
+      <rect x="212" y="522" width="76" height="30" rx="8" class="cell"/><text x="250" y="542"><tspan class="mut" font-size="11">23</tspan><tspan dx="5" class="fire">丙</tspan><tspan class="water">子</tspan></text>
+      <rect x="298" y="522" width="76" height="30" rx="8" class="cell"/><text x="336" y="542"><tspan class="mut" font-size="11">33</tspan><tspan dx="5" class="wood">乙</tspan><tspan class="water">亥</tspan></text>
+      <rect x="384" y="522" width="76" height="30" rx="8" class="cell"/><text x="422" y="542"><tspan class="mut" font-size="11">43</tspan><tspan dx="5" class="wood">甲</tspan><tspan class="earth">戌</tspan></text>
+      <rect x="470" y="522" width="76" height="30" rx="8" class="cell"/><text x="508" y="542"><tspan class="mut" font-size="11">53</tspan><tspan dx="5" class="water">癸</tspan><tspan class="metal">酉</tspan></text>
+      <rect x="556" y="522" width="76" height="30" rx="8" class="cell"/><text x="594" y="542"><tspan class="mut" font-size="11">63</tspan><tspan dx="5" class="water">壬</tspan><tspan class="metal">申</tspan></text>
+      <rect x="642" y="522" width="76" height="30" rx="8" class="cell"/><text x="680" y="542"><tspan class="mut" font-size="11">73</tspan><tspan dx="5" class="metal">辛</tspan><tspan class="earth">未</tspan></text>
+    </g>
+  </g>
+
+  <!-- footer -->
+  <g class="g d7">
+    <text x="40" y="596" class="mut" font-size="12">deterministic · golden-tested · true solar time · MIT — words are your job (or an LLM's)</text>
+  </g>
+</svg>
