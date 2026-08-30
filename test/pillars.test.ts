@@ -9,12 +9,15 @@ const sj = (date: string, time: string | undefined, calendar: 'solar' | 'lunar',
 const pillars = (s: ReturnType<typeof deriveSaju>) =>
   `${s.year.hanja}${s.month.hanja}${s.day.hanja}${s.hour?.hanja ?? ''}`;
 
-// ── 1. Solar-term boundary: 입춘 (start of spring) 2024 = Feb 4, 05:02 KST.
-//      The year AND month pillars flip at that minute — not at midnight.
+// ── 1. Solar-term boundary: 입춘 (start of spring) 2024 = Feb 4, 17:26 KST (astronomical; KASI
+//      publishes 17:27). The year AND month pillars flip at that minute — not at midnight.
+//      ⚠ Corrected in 0.1.1: the old "05:02" was the 2026 value the dataset returned for every
+//      year; 04:00/05:01/05:03 all sat on the same side of the true boundary, so the test passed
+//      by accident. Now locked on both sides of the real instant.
 test('solar-term boundary (입춘) — year/month pillars flip at the exact minute', () => {
   const before = sj('2024-02-04', '04:00', 'solar'); // before the term
-  const justBefore = sj('2024-02-04', '05:01', 'solar'); // 1 minute before
-  const after = sj('2024-02-04', '05:03', 'solar'); // just after
+  const justBefore = sj('2024-02-04', '17:25', 'solar'); // 1 minute before
+  const after = sj('2024-02-04', '17:28', 'solar'); // just after
   assert.equal(before.year.hanja, '癸卯', 'before the term the year pillar is still 癸卯 (2023)');
   assert.equal(before.month.hanja, '乙丑', 'before the term the month pillar is 乙丑');
   assert.equal(before.solarTermAdjusted, true);

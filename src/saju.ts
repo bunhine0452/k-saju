@@ -1,12 +1,10 @@
 // Manseryeok (만세력) → four pillars, with the boundary corrections most calculators skip.
-// Calendar dataset: @fullstackfamily/manseryeok (MIT, KASI-derived, 1900–2050).
-import {
-  calculateSaju,
-  lunarToSolar,
-  getSolarTermsByYear,
-  type SajuResult,
-} from '@fullstackfamily/manseryeok';
+// Calendar dataset: @fullstackfamily/manseryeok (MIT, KASI-derived, 1900–2050) — used for the
+// sexagenary pillars and lunar↔solar conversion only. Solar-term *instants* come from
+// solar-terms.ts (astronomical computation), not from the dataset.
+import { calculateSaju, lunarToSolar, type SajuResult } from '@fullstackfamily/manseryeok';
 import type { BirthInput, Pillar, Saju } from './types.js';
+import { jeolgiOfYear } from './solar-terms.js';
 import { STEMS, STEMS_KO, BRANCHES, BRANCHES_KO } from './maps.js';
 
 function toPillar(korean: string, hanja: string): Pillar {
@@ -103,29 +101,14 @@ interface Jeolgi {
   hour: number;
   minute: number;
 }
-const jeolgiCache = new Map<number, Jeolgi[]>();
+/**
+ * The year's 12 month-boundary terms (절기) as KST instants — solar-terms.ts (astronomical,
+ * 1900–2050; 입춘 also bounds the year pillar). Outside that range → [] → day-granularity fallback.
+ * ⚠ Until 0.1.1 this read the dataset's `getSolarTermsByYear`, which returns the 2026 table for
+ *   every year 2020–2030 (입춘 fixed at Feb 4 05:02) — see solar-terms.ts.
+ */
 function jeolgiOf(year: number): Jeolgi[] {
-  if (!jeolgiCache.has(year)) {
-    let list: Jeolgi[] = [];
-    try {
-      // ⚠ The minute-level solar-term dataset covers 2020–2030 only.
-      //   Other years return [] → day-granularity fallback.
-      const terms = getSolarTermsByYear(year) as Array<{
-        type: string;
-        month: number;
-        day: number;
-        hour: number;
-        minute: number;
-      }>;
-      list = terms
-        .filter((t) => t.type === 'jeolgi') // the 12 month-boundary terms; 입춘 also bounds the year pillar
-        .map((t) => ({ month: t.month, day: t.day, hour: t.hour, minute: t.minute }));
-    } catch {
-      list = [];
-    }
-    jeolgiCache.set(year, list);
-  }
-  return jeolgiCache.get(year)!;
+  return jeolgiOfYear(year);
 }
 
 /**
@@ -135,7 +118,7 @@ function jeolgiOf(year: number): Jeolgi[] {
  *   granularity, so a birth on a term day but before the exact term time gets the next
  *   term's year/month pillar. We correct that: before the term time, the year/month
  *   pillars are taken from the previous day (day/hour pillars keep the actual date).
- *   Term times are KST astronomical times.
+ *   Term instants are computed astronomically (solar-terms.ts, KST, 1900–2050).
  * - The hour pillar is computed here (see hourPillarOf) — not by the library, whose
  *   boundary is double-shifted. Unknown time → hour pillar null.
  * ⚠ Unknown time + term-day birth cannot be minute-corrected (stays day-granular).

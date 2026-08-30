@@ -43,10 +43,10 @@ These four traps are locked by [golden tests](./test) here:
 
 | The trap | What many tools do | What k-saju does | See for yourself |
 | --- | --- | --- | --- |
-| **Solar terms are instants, not dates.** The year/month pillar flips at 입춘 (start of spring) *05:02 KST*, not at midnight. | Apply the term at day granularity → everyone born that morning gets the wrong year pillar. | Minute-exact comparison; year & month corrected, day untouched. | `npx k-saju 2024-02-04 04:00` → year is still 癸卯, *not* 甲辰 |
+| **Solar terms are instants, not dates.** In 2024 the year/month pillar flips at 입춘 (start of spring) *Feb 4, 17:26 KST*, not at midnight. | Apply the term at day granularity → everyone born earlier that day gets the wrong year pillar. | Minute-exact comparison against the astronomical instant; year & month corrected, day untouched. | `npx k-saju 2024-02-04 04:00` → year is still 癸卯, *not* 甲辰 |
 | **The midnight hour (자시) is double-edged.** Born 23:31: whose day is your hour stem from? | Flip the day pillar, or ignore the late-자시 rule entirely. | Day pillar stays with clock midnight; hour stem takes the next day's stem (야자시 rule). | `npx k-saju 2000-05-15 23:31` → day 癸酉, hour 甲子 |
 | **The clock is not the sun.** Korea's standard meridian is 135°E; Seoul sits at 127°. | One fixed −30 min for everyone, or nothing. | Optional true solar time: longitude × 4 min + equation of time, per birth date. | `npx k-saju 2000-05-05 09:30 --lon 124.7` → 丙辰, while Seoul gets 丁巳 |
-| **Foreign births need absolute time.** Solar terms are astronomical instants; a New York evening can already be past a KST-dated term. | Compare local *dates* to KST term *dates*. | Convert the term instant to the birth timezone and compare instants. | `npx k-saju 2024-02-03 16:00 --place new-york` → year 甲辰 on "Feb 3" |
+| **Foreign births need absolute time.** Solar terms are astronomical instants; on a New York morning a KST-dated term may not have happened yet (입춘 2024 = 03:26 EST). | Compare local *dates* to KST term *dates*. | Convert the term instant to the birth timezone and compare instants. | `npx k-saju 2024-02-04 00:30 --place new-york` → year still 癸卯 on "Feb 4" |
 
 Every number in this table is enforced by the test suite. If a claim here ever
 drifts from the code, CI fails.
@@ -58,9 +58,11 @@ npm install k-saju        # library
 npx k-saju                # or just run the CLI, interactive
 ```
 
-ESM only, Node ≥ 20, TypeScript types included. One runtime dependency
-([`@fullstackfamily/manseryeok`](https://www.npmjs.com/package/@fullstackfamily/manseryeok),
-MIT — the KASI-derived Korean calendar dataset, 1900–2050).
+ESM only, Node ≥ 20, TypeScript types included. Two runtime dependencies, both MIT:
+[`@fullstackfamily/manseryeok`](https://www.npmjs.com/package/@fullstackfamily/manseryeok)
+(the KASI-derived Korean calendar dataset, 1900–2050 — sexagenary pillars and lunar↔solar
+conversion) and [`astronomy-engine`](https://www.npmjs.com/package/astronomy-engine)
+(solar-term instants, computed rather than tabulated).
 
 ## Quick start
 
@@ -91,11 +93,12 @@ Born outside Korea? Give the engine the local wall clock plus where:
 
 ```ts
 deriveSaju({
-  date: '2024-02-03', time: '16:00', calendar: 'solar',
+  date: '2024-02-04', time: '00:30', calendar: 'solar',
   tzOffsetMin: -300,   // New York, EST at that date
   longitude: -74.01,   // true solar time for the hour pillar
 });
-// → year pillar 甲辰: locally it's Feb 3, but 입춘 already passed in absolute time
+// → year pillar 癸卯: locally it's already Feb 4, but 입춘 (17:26 KST = 03:26 EST)
+//   hasn't happened yet in absolute time — a date-based tool would say 甲辰
 ```
 
 Lunar birthdays, leap months included:
@@ -112,6 +115,7 @@ deriveSaju({ date: '2020-04-15', calendar: 'lunar', isLeapMonth: true, time: '09
 | `analyzeElements(saju)` | Five-element distribution — integer principal counts **and** a finer distribution weighting each branch by its hidden stems (지장간, traditional day-count ratios) |
 | `analyzeSipseong(saju)` | Ten-gods distribution relative to the day master (Companion / Output / Wealth / Authority / Resource) |
 | `analyzeDaeun(birth, saju, gender)` | Luck pillars (대운): direction, starting age, 8 pillars — with `daysToTerm` published so the arithmetic is auditable |
+| `solarTermsOfYear(year)` / `jeolgiOfYear(year)` | The 24 solar terms of a year (or just the 12 month-boundary 절기) as KST wall-clock time + absolute instant, computed astronomically for 1900–2050 |
 | `iljuInfo(saju)` / `twelveStage(stem, branch)` | Day-pillar reading: twelve life stage + the ten-god of the seat |
 | `stemLabel` / `branchLabel` / `ganjiLabel` / `*_EN` maps | English display layer: `'丙申'` → `'Yang Fire Monkey'`, `'제왕'` → `'Peak'`, … |
 
@@ -124,10 +128,13 @@ production.
 Claims of "accuracy" in this domain usually hide school choices and dataset gaps.
 Ours, in the open:
 
-- **Minute-exact solar-term times cover 2020–2030** (the dataset's range). Outside
-  it, term boundaries fall back to day granularity — exactly what other tools do
-  *everywhere*. Extending minute-level terms to 1900–2050 via astronomical
-  computation is [the roadmap's #1 item](#roadmap).
+- **Solar-term instants are computed, not tabulated** (astronomy-engine,
+  1900–2050; outside that range term boundaries fall back to day granularity).
+  They agree with the KASI-derived 2026 values within 1 minute; KASI publishes
+  whole minutes, so a 1-minute difference is rounding. *Why computed:* the
+  calendar dataset's own term table returns the 2026 values for every year
+  2020–2030 — 0.1.0 relied on it and was wrong for term-day births in every
+  other year (fixed in 0.1.1).
 - **Luck-pillar starting age** uses day-granular term boundaries (noon sampling),
   so it can differ from a paper almanac by ±1 year. `daysToTerm` is returned so
   you can audit the division yourself.
@@ -172,22 +179,26 @@ any language.
 
 ## Roadmap
 
-- [ ] Minute-exact solar terms for the full 1900–2050 range (astronomical
-      computation — **help wanted**, this is a fun one)
+- [x] Minute-exact solar terms for the full 1900–2050 range (astronomical
+      computation — shipped in 0.1.1)
+- [ ] Luck-pillar starting age (대운수) from the astronomical term instants
+      instead of the dataset's day-granular boundary (changes golden values —
+      open an issue first)
 - [ ] Branch relations (합·충·형·파·해) module
 - [ ] Zero-build browser playground (GitHub Pages)
 - [ ] Chart SVG renderer (the CLI box, as an embeddable image)
 
 ## Contributing
 
-`npm ci && npm test` — 17 golden tests should be green in under a second.
+`npm ci && npm test` — 20 golden tests should be green in under a second.
 Boundary behavior is contract: a PR that changes any golden value needs a source
 (an almanac, KASI data, or a school reference). See
 [CONTRIBUTING.md](./CONTRIBUTING.md).
 
 ## Credits & license
 
-Calendar dataset by [@fullstackfamily/manseryeok](https://www.npmjs.com/package/@fullstackfamily/manseryeok) (MIT).
+Calendar dataset by [@fullstackfamily/manseryeok](https://www.npmjs.com/package/@fullstackfamily/manseryeok) (MIT);
+solar-term astronomy by [astronomy-engine](https://github.com/cosinekitty/astronomy) (MIT).
 Engine extracted from the production core of [ioreum](https://www.ioreum.com/en) — released
 so anyone can check the math behind a reading. MIT, do what you like.
 

@@ -6,10 +6,12 @@
 //     (reverse) per step, 8 pillars (80 years).
 //   · Starting age (대운수) — days from birth to the next (forward) / previous (reverse)
 //     month-boundary solar term, ÷ 3, rounded, clamped to 1–10.
-//   ⚠ Minute-level term times exist for 2020–2030 only, so the term boundary is found at
-//     day granularity by noon sampling: the first date whose noon month pillar changes.
-//     A term falling after noon slides to the next day (≤ ±1 day), so the starting age can
-//     differ from paper almanacs by up to ±1 year — daysToTerm is published for auditing.
+//   ⚠ The term boundary is found at day granularity by noon sampling of the calendar dataset:
+//     the first date whose noon month pillar changes. It does NOT use the minute-exact instants
+//     in solar-terms.ts — recomputing the starting age from those would change locked golden
+//     values, so that is a separate, deliberate change (see the roadmap). The dataset may place
+//     the change a day after the astronomical instant (≤ ±1 day), so the starting age can differ
+//     from paper almanacs by up to ±1 year — daysToTerm is published for auditing.
 import { calculateSaju, lunarToSolar } from '@fullstackfamily/manseryeok';
 import type { BirthInput, DaeunInfo, DaeunPillar, Saju } from './types.js';
 import { STEM_ELEMENT, BRANCH_ELEMENT, STEMS, BRANCHES } from './maps.js';

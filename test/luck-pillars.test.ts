@@ -1,10 +1,10 @@
 // Luck pillars (대운) — direction (year-stem polarity × gender), sexagenary walk, and
-// starting age (days to term ÷ 3). 2020–2030 cross-checked against the library's term table.
+// starting age (days to term ÷ 3, day-granular: the calendar dataset's month-pillar change).
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { getSolarTermsByYear } from '@fullstackfamily/manseryeok';
 import { analyzeDaeun } from '../src/daeun.js';
 import { deriveSaju } from '../src/saju.js';
+import { jeolgiOfYear } from '../src/solar-terms.js';
 
 const STEMS = '甲乙丙丁戊己庚辛壬癸';
 const BRANCHES = '子丑寅卯辰巳午未申酉戌亥';
@@ -27,27 +27,28 @@ test('direction — 甲辰 year (yang stem): men forward, women reverse; first p
   assert.equal(ganjiIndex(f.pillars[0].ganji), (mi + 59) % 60);
 });
 
-test('starting age — cross-checked against the 2024 term table (noon-sampling convention)', () => {
+test('starting age — 2024-03-10: day-granular term boundary of the calendar dataset (±1 day vs the instant)', () => {
+  // The starting age walks the dataset's noon month pillar, not the astronomical instants
+  // (that would change these locked values — a separate change). Both are shown here so the
+  // ±1-day caveat is visible:
+  //   경칩 2024 = Mar 5 11:22 KST, the dataset changes the month pillar on Mar 6 → 4 days back.
+  //   청명 2024 = Apr 4 16:02 KST, the dataset changes the month pillar on Apr 5 → 26 days ahead.
+  // (0.1.0 "cross-checked" these against the dataset's term table, which was the 2026 table —
+  //  경칩 Mar 5 22:58 / 청명 Apr 5 03:39 — and matched by coincidence.)
+  const terms = jeolgiOfYear(2024);
+  const gyeongchip = terms.find((t) => t.name === '경칩')!;
+  const cheongmyeong = terms.find((t) => t.name === '청명')!;
+  assert.equal(`${gyeongchip.month}/${gyeongchip.day} ${gyeongchip.hour}:${gyeongchip.minute}`, '3/5 11:22');
+  assert.equal(`${cheongmyeong.month}/${cheongmyeong.day} ${cheongmyeong.hour}:${cheongmyeong.minute}`, '4/4 16:2');
+
   const saju = deriveSaju(birth2024);
-  const terms = (getSolarTermsByYear(2024) as Array<{ type: string; month: number; day: number; hour: number }>)
-    .filter((t) => t.type === 'jeolgi');
-  // Effective term day = next day when the term time is past noon (same convention as
-  // the engine's noon sampling).
-  const effectiveUtc = (t: { month: number; day: number; hour: number }) =>
-    Date.UTC(2024, t.month - 1, t.day) + (t.hour >= 12 ? 86_400_000 : 0);
-  const birthUtc = Date.UTC(2024, 2, 10);
-  // Forward (M): days to the first term after Mar 10 (청명 Apr 5 03:39 → effective Apr 5).
-  const next = terms.find((t) => effectiveUtc(t) > birthUtc)!;
-  const daysF = Math.round((effectiveUtc(next) - birthUtc) / 86_400_000);
-  const m = analyzeDaeun(birth2024, saju, 'M')!;
-  assert.equal(m.daysToTerm, daysF);
-  assert.equal(m.daeunsu, Math.max(1, Math.min(10, Math.round(daysF / 3))));
-  // Reverse (F): days from the previous term (경칩 Mar 5 22:58 → effective Mar 6) to Mar 10.
-  const prev = [...terms].reverse().find((t) => effectiveUtc(t) <= birthUtc)!;
-  const daysB = Math.round((birthUtc - effectiveUtc(prev)) / 86_400_000);
-  const f = analyzeDaeun(birth2024, saju, 'F')!;
-  assert.equal(f.daysToTerm, daysB);
-  assert.equal(f.daeunsu, Math.max(1, Math.min(10, Math.round(daysB / 3))));
+  assert.equal(saju.month.hanja, '丁卯');
+  const m = analyzeDaeun(birth2024, saju, 'M')!; // forward: Mar 10 → Apr 5
+  assert.equal(m.daysToTerm, 26);
+  assert.equal(m.daeunsu, 9);
+  const f = analyzeDaeun(birth2024, saju, 'F')!; // reverse: Mar 6 → Mar 10
+  assert.equal(f.daysToTerm, 4);
+  assert.equal(f.daeunsu, 1);
 });
 
 test('properties — 8 pillars · 10-year gaps · sexagenary continuity · determinism · out-of-range year (1985)', () => {

@@ -11,6 +11,14 @@ export {
   type SipseongCategory,
 } from './sipseong.js';
 export { analyzeDaeun } from './daeun.js';
+export {
+  solarTermsOfYear,
+  jeolgiOfYear,
+  SOLAR_TERM_YEAR_MIN,
+  SOLAR_TERM_YEAR_MAX,
+  type SolarTerm,
+  type SolarTermType,
+} from './solar-terms.js';
 export { iljuInfo, twelveStage } from './ilju.js';
 export { JIJANGGAN, JIJANGGAN_TOTAL_DAYS, type JijangganPart } from './data/hidden-stems.js';
 export {
@@ -33,4 +41,4 @@ export {
 
 /** Rule-set identifier — bump when a table or school choice changes. */
 export const RULESET = 'k-saju-2026.07';
-export const ENGINE_VERSION = '0.1.0';
+export const ENGINE_VERSION = '0.1.1';

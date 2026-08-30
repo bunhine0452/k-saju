@@ -7,7 +7,7 @@ can be trusted, so the bar for changes is "prove it", not "trust me".
 
 ```bash
 npm ci
-npm test          # 17 golden tests, < 1 s
+npm test          # 20 golden tests, < 1 s
 npm run typecheck
 npm run build && node bin/k-saju.mjs 1995-03-16 07:30
 ```
@@ -27,13 +27,14 @@ npm run build && node bin/k-saju.mjs 1995-03-16 07:30
 4. **School choices are features, not bugs.** If your tradition computes a rule
    differently (e.g. 야자시 handling), don't silently change the default —
    propose it as a documented option.
-5. **Keep it lean.** One runtime dependency is the budget. New ones need a very
-   good reason.
+5. **Keep it lean.** Two runtime dependencies (the calendar dataset and the
+   astronomy library) are the budget. New ones need a very good reason.
 
 ## Good first contributions
 
-- Minute-exact solar terms beyond 2020–2030 (astronomical computation — the
-  roadmap's #1; open an issue first to agree on the approach and tolerances).
+- Luck-pillar starting age (대운수) from the astronomical term instants instead
+  of the dataset's day-granular boundary (changes golden values — open an issue
+  first to agree on the convention and tolerances).
 - Branch relations (합·충·형·파·해) as a new module with its own golden tests.
 - More city presets / better `--place` UX in the CLI.
 - Cross-checking golden cases against additional published almanacs.
