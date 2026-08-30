@@ -41,4 +41,4 @@ export {
 
 /** Rule-set identifier — bump when a table or school choice changes. */
 export const RULESET = 'k-saju-2026.07';
-export const ENGINE_VERSION = '0.1.1';
+export const ENGINE_VERSION = '0.1.2';

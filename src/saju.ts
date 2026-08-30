@@ -1,11 +1,15 @@
 // Manseryeok (만세력) → four pillars, with the boundary corrections most calculators skip.
 // Calendar dataset: @fullstackfamily/manseryeok (MIT, KASI-derived, 1900–2050) — used for the
-// sexagenary pillars and lunar↔solar conversion only. Solar-term *instants* come from
-// solar-terms.ts (astronomical computation), not from the dataset.
+// day pillar and lunar↔solar conversion only. The year and month pillars are computed here
+// from the solar-term *instants* in solar-terms.ts (astronomical) — see yearMonthFromInstants
+// for why the dataset's day-level month table cannot be patched into correctness.
 import { calculateSaju, lunarToSolar, type SajuResult } from '@fullstackfamily/manseryeok';
 import type { BirthInput, Pillar, Saju } from './types.js';
-import { jeolgiOfYear } from './solar-terms.js';
+import { jeolgiOfYear, type SolarTerm } from './solar-terms.js';
 import { STEMS, STEMS_KO, BRANCHES, BRANCHES_KO } from './maps.js';
+
+const KST_OFFSET_MIN = 540; // input is read as KST (Asia/Seoul) when tzOffsetMin is omitted
+const SEXAGENARY_EPOCH_YEAR = 1984; // a 甲子 year — anchor for the year-pillar modulo
 
 function toPillar(korean: string, hanja: string): Pillar {
   return { korean, hanja, stem: hanja.charAt(0), branch: hanja.charAt(1) };
@@ -95,15 +99,12 @@ function hourPillarOf(y: number, m: number, d: number, hour: number, minute: num
   };
 }
 
-interface Jeolgi {
-  month: number;
-  day: number;
-  hour: number;
-  minute: number;
-}
+// ── Year & month pillars, computed from the solar-term instants ─────────────
+type Jeolgi = SolarTerm;
 /**
- * The year's 12 month-boundary terms (절기) as KST instants — solar-terms.ts (astronomical,
- * 1900–2050; 입춘 also bounds the year pillar). Outside that range → [] → day-granularity fallback.
+ * The year's 12 month-boundary terms (절기) as absolute instants — solar-terms.ts (astronomical,
+ * 1900–2050; 입춘 also bounds the year pillar). Outside that range → [] → the dataset's
+ * day-granular pillars are kept.
  * ⚠ Until 0.1.1 this read the dataset's `getSolarTermsByYear`, which returns the 2026 table for
  *   every year 2020–2030 (입춘 fixed at Feb 4 05:02) — see solar-terms.ts.
  */
@@ -111,17 +112,68 @@ function jeolgiOf(year: number): Jeolgi[] {
   return jeolgiOfYear(year);
 }
 
+/** Hanja ganji → Korean reading ('甲子' → '갑자'). */
+function ganjiKo(hanja: string): string {
+  return STEMS_KO[STEMS.indexOf(hanja.charAt(0))] + BRANCHES_KO[BRANCHES.indexOf(hanja.charAt(1))];
+}
+
+/**
+ * Year and month pillars straight from the solar-term instants (0.1.2).
+ *
+ * Why the dataset's pillars are not used: its month pillar is a day-level table, and at many
+ * terms that table switches to the new month on the day AFTER the astronomical instant
+ * (measured: 경칩 2024 = Mar 5 11:22 KST, table flips Mar 6 · 입동 2024 = Nov 7 07:19, flips
+ * Nov 8 · 입춘 2025 = Feb 3 23:10, flips Feb 4 · 소한 2025 = Jan 5 11:32, flips Jan 6). The
+ * 0.1.0–0.1.1 patch ("born on the term day before the term time → take the previous day's
+ * pillars") only handles a table that flips EARLY; when the table flips late, a birth after the
+ * instant but before the table's flip kept the old month: 2024-03-05 12:00 → 丙寅 (correct 丁卯),
+ * 2024-11-07 12:00 → 甲戌 (correct 乙亥), 2025-02-03 23:30 → 甲辰 丁丑 (correct 乙巳 戊寅), and
+ * New York 2025-02-03 10:00 (= KST Feb 4 00:00) → 甲辰 (correct 乙巳 戊寅). Away from the
+ * boundaries the table and this computation agree on every day 1905–2049 except Dec 31 of 12
+ * years (1908 … 1961), where the dataset's year stem is simply corrupt (1908-12-31 → 壬申; the
+ * year is 戊申) — computing the pillars here sidesteps that too (test/solar-terms-direct.test.ts).
+ *
+ * Rules:
+ *   · Year pillar — 입춘 (start of spring) of the calendar year: at/after the instant → that
+ *     year, before → the previous year. Stem and branch by modulo from 1984 = 甲子.
+ *   · Month pillar — branch of the last term already passed (입춘 → 寅 … 대설 → 子, 소한 → 丑);
+ *     stem by the five-tigers rule (五虎遁): year stem 甲/己 → 丙寅 as the first month,
+ *     乙/庚 → 戊寅, 丙/辛 → 庚寅, 丁/壬 → 壬寅, 戊/癸 → 甲寅, then +1 per month.
+ *   · The previous calendar year's terms are included so early January (after 대설, before
+ *     소한) has a "last term passed" — without them the 子 month would be unresolvable.
+ * Returns null outside the solar-term range; the caller keeps the dataset's pillars.
+ */
+function yearMonthFromInstants(birthAbsMs: number, calYear: number): { year: string; month: string } | null {
+  const prev = jeolgiOf(calYear - 1);
+  const cur = jeolgiOf(calYear);
+  if (!prev.length || !cur.length) return null;
+  const ipchun = cur.find((t) => t.sajuMonth === 1);
+  if (!ipchun) return null;
+  const sajuYear = birthAbsMs >= ipchun.utcMs ? calYear : calYear - 1;
+  const yIdx = (((sajuYear - SEXAGENARY_EPOCH_YEAR) % 60) + 60) % 60;
+  const yStem = yIdx % 10;
+  const passed = [...prev, ...cur].filter((t) => t.utcMs <= birthAbsMs);
+  const last = passed[passed.length - 1];
+  if (!last) return null;
+  const mBranch = (last.sajuMonth + 1) % 12; // saju month 1 = 寅 (index 2) … 11 = 子 (0) · 12 = 丑 (1)
+  const mStem = (2 + 2 * (yStem % 5) + (last.sajuMonth - 1)) % 10; // 五虎遁: 丙 (2) + 2 per stem pair, +1 per month
+  return { year: STEMS[yStem] + BRANCHES[yIdx % 12], month: STEMS[mStem] + BRANCHES[mBranch] };
+}
+
 /**
  * Birth date/time → four pillars (사주).
  * - Lunar input is converted to Gregorian first (leap months honored).
- * - **Minute-exact solar-term correction**: the library applies solar terms at day
- *   granularity, so a birth on a term day but before the exact term time gets the next
- *   term's year/month pillar. We correct that: before the term time, the year/month
- *   pillars are taken from the previous day (day/hour pillars keep the actual date).
- *   Term instants are computed astronomically (solar-terms.ts, KST, 1900–2050).
- * - The hour pillar is computed here (see hourPillarOf) — not by the library, whose
- *   boundary is double-shifted. Unknown time → hour pillar null.
- * ⚠ Unknown time + term-day birth cannot be minute-corrected (stays day-granular).
+ * - **Year & month pillars come from the solar-term instants**, not from the calendar
+ *   dataset (see yearMonthFromInstants): the birth is turned into an absolute instant
+ *   (local wall clock − tzOffsetMin, KST when omitted) and compared with the astronomical
+ *   term instants, so a birth one minute after 입춘 gets the new year — on any date, in
+ *   any timezone. Unknown time → noon of the birth day (a stated rule; the dataset's
+ *   day-level table is a day late at many terms, so noon is the more honest midpoint).
+ * - The day pillar is the dataset's (continuous 60-day cycle at clock midnight — independent
+ *   of solar terms); the hour pillar is computed here (hourPillarOf — the library's boundary
+ *   is double-shifted). Unknown time → hour pillar null.
+ * - Outside the solar-term range (1900–2050) the dataset's day-granular pillars are kept.
+ * `solarTermAdjusted` = the year or month pillar differs from the dataset's day-granular value.
  */
 export function deriveSaju(birth: BirthInput): Saju {
   let [year, month, day] = parseYmd(birth.date);
@@ -134,52 +186,16 @@ export function deriveSaju(birth: BirthInput): Saju {
   const [hour, minute] = parseHm(birth.time);
   const r: SajuResult = calculateSaju(year, month, day, hour, minute);
 
-  // Minute-exact solar-term boundary correction — only when the time is known.
-  let yearPillar = r.yearPillar;
-  let yearPillarHanja = r.yearPillarHanja;
-  let monthPillar = r.monthPillar;
-  let monthPillarHanja = r.monthPillarHanja;
-  let solarTermAdjusted = false;
-  const tzOff = birth.tzOffsetMin;
-  if (hour != null && tzOff != null && tzOff !== 540) {
-    // Born outside KST: input is the local wall clock, term data are KST astronomical
-    // times → convert term times to local and compare absolute instants. The library
-    // already decided at day granularity ('local date ≥ KST term date'), so we only
-    // recompute the year/month pillars when that decision disagrees with the true
-    // boundary. Day/hour pillars stay on the local date/time (local-time school —
-    // the convention of Western BaZi tools).
-    const birthLocalMs = Date.UTC(year, month - 1, day, hour, minute ?? 0);
-    for (const t of jeolgiOf(year)) {
-      const termLocalMs = Date.UTC(year, t.month - 1, t.day, t.hour, t.minute) + (tzOff - 540) * 60_000;
-      if (Math.abs(birthLocalMs - termLocalMs) > 2 * 86_400_000) continue; // adjacent terms only
-      const libNew = Date.UTC(year, month - 1, day) >= Date.UTC(year, t.month - 1, t.day);
-      const trueNew = birthLocalMs >= termLocalMs;
-      if (libNew === trueNew) continue;
-      const [ay, am, ad] = trueNew ? [year, t.month, t.day] : addDays(year, t.month, t.day, -1);
-      const ar = calculateSaju(ay, am, ad, 12, 0); // anchor: term date (new month) or the day before (previous month), at noon
-      yearPillar = ar.yearPillar;
-      yearPillarHanja = ar.yearPillarHanja;
-      monthPillar = ar.monthPillar;
-      monthPillarHanja = ar.monthPillarHanja;
-      solarTermAdjusted = true;
-      break;
-    }
-  } else if (hour != null) {
-    const onTerm = jeolgiOf(year).find((t) => t.month === month && t.day === day);
-    if (onTerm) {
-      const beforeTerm =
-        hour < onTerm.hour || (hour === onTerm.hour && (minute ?? 0) < onTerm.minute);
-      if (beforeTerm) {
-        const [py, pm, pd] = addDays(year, month, day, -1);
-        const pr = calculateSaju(py, pm, pd, 12, 0); // previous day at noon → previous year/month pillars
-        yearPillar = pr.yearPillar;
-        yearPillarHanja = pr.yearPillarHanja;
-        monthPillar = pr.monthPillar;
-        monthPillarHanja = pr.monthPillarHanja;
-        solarTermAdjusted = true;
-      }
-    }
-  }
+  // Year & month pillars from the term instants; the dataset's values are the fallback and the
+  // reference for solarTermAdjusted.
+  const tzOff = birth.tzOffsetMin ?? KST_OFFSET_MIN;
+  const birthAbsMs = Date.UTC(year, month - 1, day, hour ?? 12, minute ?? 0) - tzOff * 60_000;
+  const direct = yearMonthFromInstants(birthAbsMs, year);
+  const yearPillarHanja = direct?.year ?? r.yearPillarHanja;
+  const monthPillarHanja = direct?.month ?? r.monthPillarHanja;
+  const yearPillar = direct ? ganjiKo(yearPillarHanja) : r.yearPillar;
+  const monthPillar = direct ? ganjiKo(monthPillarHanja) : r.monthPillar;
+  const solarTermAdjusted = yearPillarHanja !== r.yearPillarHanja || monthPillarHanja !== r.monthPillarHanja;
 
   // Hour pillar computed here (library boundary is double-shifted) — see hourPillarOf.
   const corrMin = hourCorrectionMin(birth.longitude, year, month, day, birth.tzOffsetMin);

@@ -7,7 +7,7 @@ can be trusted, so the bar for changes is "prove it", not "trust me".
 
 ```bash
 npm ci
-npm test          # 20 golden tests, < 1 s
+npm test          # 28 golden tests, < 1 s
 npm run typecheck
 npm run build && node bin/k-saju.mjs 1995-03-16 07:30
 ```
@@ -32,9 +32,9 @@ npm run build && node bin/k-saju.mjs 1995-03-16 07:30
 
 ## Good first contributions
 
-- Luck-pillar starting age (대운수) from the astronomical term instants instead
-  of the dataset's day-granular boundary (changes golden values — open an issue
-  first to agree on the convention and tolerances).
+- A day-pillar cross-check against a second source: the day pillar is the last
+  value still read from the calendar dataset (which has a hole at 1956-12-31 and
+  corrupt year stems on Dec 31 of 12 years — see test/solar-terms-direct.test.ts).
 - Branch relations (합·충·형·파·해) as a new module with its own golden tests.
 - More city presets / better `--place` UX in the CLI.
 - Cross-checking golden cases against additional published almanacs.

@@ -51,8 +51,10 @@ export interface Saju {
   /** Whether the hour boundary used a corrected clock (always true when hour is known). */
   isTimeCorrected: boolean;
   /**
-   * True when the minute-exact solar-term correction moved the year/month pillar
-   * (born on a solar-term day, before the exact term time — or across a timezone).
+   * True when the year or month pillar computed from the solar-term instants differs from
+   * the calendar dataset's day-granular value (born near a term boundary — on the term day
+   * before the term time, after the term time on a day the dataset flips late, or across a
+   * timezone). Both pillars are always instant-based; this flag only reports the disagreement.
    */
   solarTermAdjusted: boolean;
   /** True when the hour pillar used true solar time (longitude + equation of time). */
@@ -106,7 +108,10 @@ export interface DaeunInfo {
   direction: '순행' | '역행';
   /** Starting age of the first luck pillar (1–10): days to the solar term ÷ 3, rounded. */
   daeunsu: number;
-  /** Days from birth to the governing solar term — published so the math is auditable. */
+  /**
+   * Days from birth to the governing solar term (astronomical instant): forward = ceil(days to
+   * the next term), reverse = floor(days since the previous term). Published so the math is auditable.
+   */
   daysToTerm: number;
   pillars: DaeunPillar[];
 }

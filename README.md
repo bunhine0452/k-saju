@@ -60,7 +60,7 @@ npx k-saju                # or just run the CLI, interactive
 
 ESM only, Node ≥ 20, TypeScript types included. Two runtime dependencies, both MIT:
 [`@fullstackfamily/manseryeok`](https://www.npmjs.com/package/@fullstackfamily/manseryeok)
-(the KASI-derived Korean calendar dataset, 1900–2050 — sexagenary pillars and lunar↔solar
+(the KASI-derived Korean calendar dataset, 1900–2050 — day pillar and lunar↔solar
 conversion) and [`astronomy-engine`](https://www.npmjs.com/package/astronomy-engine)
 (solar-term instants, computed rather than tabulated).
 
@@ -129,15 +129,24 @@ Claims of "accuracy" in this domain usually hide school choices and dataset gaps
 Ours, in the open:
 
 - **Solar-term instants are computed, not tabulated** (astronomy-engine,
-  1900–2050; outside that range term boundaries fall back to day granularity).
-  They agree with the KASI-derived 2026 values within 1 minute; KASI publishes
-  whole minutes, so a 1-minute difference is rounding. *Why computed:* the
-  calendar dataset's own term table returns the 2026 values for every year
+  1900–2050; outside that range the calendar dataset's day-granular pillars are
+  used as-is). They agree with the KASI-derived 2026 values within 1 minute; KASI
+  publishes whole minutes, so a 1-minute difference is rounding. *Why computed:*
+  the calendar dataset's own term table returns the 2026 values for every year
   2020–2030 — 0.1.0 relied on it and was wrong for term-day births in every
   other year (fixed in 0.1.1).
-- **Luck-pillar starting age** uses day-granular term boundaries (noon sampling),
-  so it can differ from a paper almanac by ±1 year. `daysToTerm` is returned so
-  you can audit the division yourself.
+- **Year & month pillars are computed directly from the solar-term instants; the
+  day pillar comes from the calendar library.** *Why:* the dataset's day-level
+  month table switches months a day *after* the instant at many terms (경칩 2024 =
+  Mar 5 11:22 KST, table flips Mar 6), so 0.1.1's "term-day, before the term time"
+  patch still gave `2024-03-05 12:00` the old month (丙寅 instead of 丁卯) and
+  `2025-02-03 23:30` the old year (甲辰 instead of 乙巳). Fixed in 0.1.2; off the
+  boundaries the two agree on every day 1905–2049 (the sweep is a test), except
+  Dec 31 of 12 years where the dataset's year stem is corrupt — now bypassed.
+- **Luck-pillar starting age** measures days to the term against the astronomical
+  instants (forward: ceil, reverse: floor; unknown time → noon). Schools still
+  place the first pillar ±1 year apart, so `daysToTerm` is returned for you to
+  audit the division yourself.
 - **Equation of time** uses the standard approximation (±0.5 min).
 - **Conventions declared:** hour branches anchor at true-solar 23:00 (the classic
   −30 min Korean manseryeok correction when no longitude is given); late 자시
@@ -181,16 +190,16 @@ any language.
 
 - [x] Minute-exact solar terms for the full 1900–2050 range (astronomical
       computation — shipped in 0.1.1)
-- [ ] Luck-pillar starting age (대운수) from the astronomical term instants
-      instead of the dataset's day-granular boundary (changes golden values —
-      open an issue first)
+- [x] Year & month pillars and the luck-pillar starting age (대운수) from the
+      astronomical term instants instead of the dataset's day-level table
+      (shipped in 0.1.2)
 - [ ] Branch relations (합·충·형·파·해) module
 - [ ] Zero-build browser playground (GitHub Pages)
 - [ ] Chart SVG renderer (the CLI box, as an embeddable image)
 
 ## Contributing
 
-`npm ci && npm test` — 20 golden tests should be green in under a second.
+`npm ci && npm test` — 28 golden tests should be green in under a second.
 Boundary behavior is contract: a PR that changes any golden value needs a source
 (an almanac, KASI data, or a school reference). See
 [CONTRIBUTING.md](./CONTRIBUTING.md).
