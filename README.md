@@ -210,10 +210,18 @@ Release history and the reason behind every changed value:
 
 ## Contributing
 
-`npm ci && npm test` — 29 golden tests should be green in under a second.
+`npm ci && npm test` — 43 tests should be green in under a second.
 Boundary behavior is contract: a PR that changes any golden value needs a source
 (an almanac, KASI data, or a school reference). See
 [CONTRIBUTING.md](./CONTRIBUTING.md).
+
+Two kinds of test live here and they are not interchangeable. The golden files
+(`pillars`, `tz`, `solar-terms`, …) check that values are *right*, against sources
+outside this repository. `param-read.test.ts` checks something weaker but
+independent: that every parameter the public API accepts actually reaches the
+result. It asserts only relationships — vary one field, the output must move — so
+it needs no ground truth and cannot be satisfied by fixtures derived from the
+engine. A new parameter belongs in both.
 
 ## Credits & license
 

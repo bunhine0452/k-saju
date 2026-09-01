@@ -8,7 +8,34 @@ This project adheres to [Semantic Versioning](https://semver.org/). Before 1.0,
 correctness fixes may change output — that is the point of the pre-1.0 phase, and
 every such change is listed below.
 
-## [0.1.4] — 2026-09-01
+## [0.1.4] — 2026-09-02
+
+### Added
+
+- **A parameter-read probe for every parameter the public API accepts**
+  (`test/param-read.test.ts`, 14 tests). Hold every field constant but one, vary
+  that one, require the output to move.
+
+  This closes a gap in the 0.1.0 post-mortem. The regression guard added then is
+  a whole-input variance check — "different years must give different instants" —
+  and it catches an argument that is ignored *entirely*. It weakens as arity
+  grows: a function of six fields passes it while reading only one of them. A
+  lookup or cache keyed on a subset of its inputs, or a field lost in a spread,
+  sails through, because the output does keep changing — just not because of the
+  parameter that was dropped. Credit to Tarun Sharma, who named the distinction in
+  the comments on [the write-up](https://dev.to/beachcombers/a-calendar-library-returned-the-same-answer-for-every-year-and-my-tests-agreed-with-it-1j93).
+
+  Covered: `date`, `time`, `calendar`, `isLeapMonth`, `longitude`, `tzOffsetMin`;
+  `analyzeDaeun`'s `birth`, `saju` and `gender`; and the two-argument functions
+  `sipseongOf`, `sipseongDetail`, `sipseongOfElement`, `twelveStage`. `gender: 'N'`
+  following `'M'` is pinned as the documented rule it is, so the direction probe
+  cannot be satisfied by gender collapsing to one branch.
+
+  Every assertion states a relationship, never a value — these need no
+  astronomical ground truth and so cannot be contaminated by fixtures read out of
+  the engine they test. Verified the way this kind of test has to be verified:
+  each parameter was dropped in turn at the function entry and the matching probe
+  went red, unmutated suite green. No behavior change.
 
 ### Fixed
 
