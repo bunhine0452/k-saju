@@ -1,6 +1,6 @@
 {
   "name": "k-saju",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Deterministic Korean Four Pillars (Saju · 사주 · BaZi) engine — minute-exact solar terms, true solar time, timezone-aware. Calculation is code; interpretation is up to you.",
   "keywords": [
     "saju",
@@ -52,7 +52,7 @@
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
     "typecheck": "tsc --noEmit",
-    "test": "node --import tsx --test test/solar-terms.test.ts test/solar-terms-direct.test.ts test/pillars.test.ts test/tz.test.ts test/elements.test.ts test/luck-pillars.test.ts test/labels.test.ts",
+    "test": "node --import tsx --test test/solar-terms.test.ts test/solar-terms-direct.test.ts test/pillars.test.ts test/tz.test.ts test/elements.test.ts test/luck-pillars.test.ts test/labels.test.ts test/version.test.ts",
     "prepublishOnly": "npm run build && npm test"
   },
   "dependencies": {

@@ -8,6 +8,19 @@ This project adheres to [Semantic Versioning](https://semver.org/). Before 1.0,
 correctness fixes may change output — that is the point of the pre-1.0 phase, and
 every such change is listed below.
 
+## [0.1.4] — 2026-09-01
+
+### Fixed
+
+- **`ENGINE_VERSION` matched the package version.** 0.1.3 shipped to npm
+  announcing itself as `0.1.2` — the release bumped `package.json` and not the
+  hand-written constant that `--version`, the CLI header and the exported
+  `ENGINE_VERSION` all read. The calculations in 0.1.3 were correct; only its
+  self-report was wrong.
+- A test now asserts the constant equals `package.json`'s version, so the pair
+  cannot drift again. Same shape as the solar-term guard: assert the
+  relationship, not the value.
+
 ## [0.1.3] — 2026-09-01
 
 The release of 0.1.2's fixes. 0.1.2 itself was tagged and then found broken on
@@ -79,6 +92,7 @@ terms, true solar time (longitude + equation of time), timezone-aware foreign
 births, five-element distribution with hidden stems, ten gods, luck pillars, and
 a CLI. Extracted from the production engine behind [ioreum](https://www.ioreum.com/en).
 
+[0.1.4]: https://github.com/bunhine0452/k-saju/releases/tag/v0.1.4
 [0.1.3]: https://github.com/bunhine0452/k-saju/releases/tag/v0.1.3
 [0.1.2]: https://github.com/bunhine0452/k-saju/releases/tag/v0.1.2
 [0.1.0]: https://www.npmjs.com/package/k-saju/v/0.1.0

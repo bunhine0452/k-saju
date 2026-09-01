@@ -7,7 +7,7 @@ can be trusted, so the bar for changes is "prove it", not "trust me".
 
 ```bash
 npm ci
-npm test          # 28 golden tests, < 1 s
+npm test          # 29 golden tests, < 1 s
 npm run typecheck
 npm run build && node bin/k-saju.mjs 1995-03-16 07:30
 ```

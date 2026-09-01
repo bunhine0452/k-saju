@@ -210,7 +210,7 @@ Release history and the reason behind every changed value:
 
 ## Contributing
 
-`npm ci && npm test` — 28 golden tests should be green in under a second.
+`npm ci && npm test` — 29 golden tests should be green in under a second.
 Boundary behavior is contract: a PR that changes any golden value needs a source
 (an almanac, KASI data, or a school reference). See
 [CONTRIBUTING.md](./CONTRIBUTING.md).
