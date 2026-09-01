@@ -14,7 +14,15 @@
 // whole minutes, so a 1-minute difference is rounding. Results are KST (UTC+9) wall clock —
 // the whole chart is anchored to KST astronomical time, and saju.ts converts for births
 // elsewhere via tzOffsetMin. Pure module (no I/O), cached per year, locked by golden tests.
-import { MakeTime, SearchSunLongitude } from 'astronomy-engine';
+// astronomy-engine ships both a CJS and an ESM build. Node 20 resolves the CJS one through
+// tsx and its lexer does not surface the named exports, so `import { MakeTime }` throws there
+// while Node 22 is fine (CI caught exactly this). Namespace import + interop unwrap works on
+// every path: true ESM has no `default`, CJS interop puts module.exports there.
+import * as AstronomyNs from 'astronomy-engine';
+
+const Astronomy = ((AstronomyNs as unknown as { default?: typeof AstronomyNs }).default ??
+  AstronomyNs) as typeof AstronomyNs;
+const { MakeTime, SearchSunLongitude } = Astronomy;
 
 /** 절기 (jeolgi) = the 12 terms that bound the months; 중기 (junggi) = the 12 mid-month terms. */
 export type SolarTermType = 'jeolgi' | 'junggi';
