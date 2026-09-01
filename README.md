@@ -134,12 +134,12 @@ Ours, in the open:
   publishes whole minutes, so a 1-minute difference is rounding. *Why computed:*
   the calendar dataset's own term table returns the 2026 values for every year
   2020–2030 — 0.1.0 relied on it and was wrong for term-day births in every
-  other year (fixed in 0.1.1).
+  other year (fixed in 0.1.2).
 - **Year & month pillars are computed directly from the solar-term instants; the
   day pillar comes from the calendar library.** *Why:* the dataset's day-level
   month table switches months a day *after* the instant at many terms (경칩 2024 =
-  Mar 5 11:22 KST, table flips Mar 6), so 0.1.1's "term-day, before the term time"
-  patch still gave `2024-03-05 12:00` the old month (丙寅 instead of 丁卯) and
+  Mar 5 11:22 KST, table flips Mar 6), so comparing only against the term
+  day still gave `2024-03-05 12:00` the old month (丙寅 instead of 丁卯) and
   `2025-02-03 23:30` the old year (甲辰 instead of 乙巳). Fixed in 0.1.2; off the
   boundaries the two agree on every day 1905–2049 (the sweep is a test), except
   Dec 31 of 12 years where the dataset's year stem is corrupt — now bypassed.
@@ -188,14 +188,25 @@ any language.
 
 ## Roadmap
 
-- [x] Minute-exact solar terms for the full 1900–2050 range (astronomical
-      computation — shipped in 0.1.1)
+Correctness before features — every place this library still trusts data it did
+not compute gets cleared first. Full reasoning in [ROADMAP.md](./ROADMAP.md).
+
+- [x] Minute-exact solar terms for the full 1900–2050 range, computed
+      astronomically (0.1.2)
 - [x] Year & month pillars and the luck-pillar starting age (대운수) from the
-      astronomical term instants instead of the dataset's day-level table
-      (shipped in 0.1.2)
-- [ ] Branch relations (합·충·형·파·해) module
+      term instants instead of the dataset's day-level table (0.1.2)
+- [ ] Boundary test vectors as a published JSON artifact, so ports in other
+      languages can verify against the same cases
 - [ ] Zero-build browser playground (GitHub Pages)
+- [ ] **v0.2** — day pillar computed from the Julian Day Number, removing the
+      last dataset dependency in the pillar path
+- [ ] **v0.3** — lunar↔solar conversion computed (new moon + the no-중기 leap
+      rule); after this every returned value is computed, not looked up
+- [ ] **v0.4** — branch relations (합·충·형·파·해) module
 - [ ] Chart SVG renderer (the CLI box, as an embeddable image)
+
+Release history and the reason behind every changed value:
+[CHANGELOG.md](./CHANGELOG.md).
 
 ## Contributing
 

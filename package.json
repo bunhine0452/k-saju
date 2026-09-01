@@ -45,6 +45,8 @@
     "bin",
     "README.md",
     "README.ko.md",
+    "CHANGELOG.md",
+    "ROADMAP.md",
     "LICENSE"
   ],
   "scripts": {
