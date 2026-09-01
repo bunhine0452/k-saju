@@ -8,10 +8,24 @@ This project adheres to [Semantic Versioning](https://semver.org/). Before 1.0,
 correctness fixes may change output — that is the point of the pre-1.0 phase, and
 every such change is listed below.
 
-## [0.1.2] — 2026-09-01
+## [0.1.3] — 2026-09-01
 
-Two correctness releases in one. **If you installed 0.1.0, charts for births on a
-solar-term day were wrong in most years — please upgrade.**
+The release of 0.1.2's fixes. 0.1.2 itself was tagged and then found broken on
+Node 20 before it reached npm; it is not published.
+
+### Fixed
+
+- **`astronomy-engine` is imported through namespace interop.** The named import
+  threw on Node 20 — `SyntaxError: The requested module 'astronomy-engine' does
+  not provide an export named 'MakeTime'` — because that runtime resolves the
+  package's CJS build and its lexer does not surface the named exports. Node 22
+  does, which is why it passed locally and in one CI lane. `package.json`
+  declares `node >= 20`, so this was a supported runtime failing.
+
+## [0.1.2] — 2026-09-01 (tagged, not published)
+
+Two correctness fixes, released in 0.1.3. **If you installed 0.1.0, charts for
+births on a solar-term day were wrong in most years — please upgrade.**
 
 ### Fixed
 
@@ -65,5 +79,6 @@ terms, true solar time (longitude + equation of time), timezone-aware foreign
 births, five-element distribution with hidden stems, ten gods, luck pillars, and
 a CLI. Extracted from the production engine behind [ioreum](https://www.ioreum.com/en).
 
+[0.1.3]: https://github.com/bunhine0452/k-saju/releases/tag/v0.1.3
 [0.1.2]: https://github.com/bunhine0452/k-saju/releases/tag/v0.1.2
 [0.1.0]: https://www.npmjs.com/package/k-saju/v/0.1.0
